@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>🀄 麻將戰績（積分版）</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#2ecc71;--green-dark:#27ae60;--red:#e74c3c;--red-dark:#c0392b;
+  --blue:#3498db;--blue-dark:#2980b9;--orange:#f39c12;--purple:#9b59b6;
+  --teal:#1abc9c;--bg:#fef9f0;--card:#fff;--text:#2c2c2c;--muted:#888;
+  --border:#ede8de;--radius:16px;--rsm:10px;
+  --shadow:0 4px 16px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.num{font-family:'Nunito',sans-serif}
+
+/* ── Header ── */
+.header{background:linear-gradient(135deg,#2c3e50,#3d5166);
+  padding:1rem 1.25rem;padding-top:calc(1rem + env(safe-area-inset-top));
+  position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2);
+  display:flex;align-items:center;justify-content:space-between}
+.header-title{color:#fff;font-size:19px;font-weight:900;font-family:'Nunito',sans-serif;display:flex;align-items:center;gap:8px}
+.header-sub{color:rgba(255,255,255,.6);font-size:12px;margin-top:2px}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#2ecc71;box-shadow:0 0 6px #2ecc71;animation:pulse 2s infinite;opacity:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── Nav ── */
+.nav{display:flex;background:#fff;border-bottom:2px solid var(--border);position:sticky;top:0;z-index:99}
+.nav-btn{flex:1;min-width:0;padding:10px 4px 8px;border:none;background:none;cursor:pointer;font-size:10px;color:var(--muted);font-family:'Noto Sans TC',sans-serif;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;font-weight:500;line-height:1.3}
+.nav-btn .icon{display:block;font-size:18px;margin-bottom:2px}
+.nav-btn.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700}
+
+/* ── Pages ── */
+.page{display:none;padding:1rem 1rem calc(6rem + env(safe-area-inset-bottom));max-width:640px;margin:0 auto;animation:fadeUp .2s ease}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Cards ── */
+.card{background:var(--card);border-radius:var(--radius);padding:1rem;margin-bottom:12px;box-shadow:var(--shadow);border:1.5px solid var(--border);overflow:hidden}
+
+/* ── Section title ── */
+.sec{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;margin-top:1.25rem}
+.sec:first-child{margin-top:0}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;border:2px solid transparent;border-radius:var(--rsm);cursor:pointer;font-size:14px;font-weight:700;font-family:'Noto Sans TC',sans-serif;transition:all .15s;white-space:nowrap}
+.btn:active{transform:scale(.96)}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-green:hover{background:var(--green-dark)}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-blue:hover{background:var(--blue-dark)}
+.btn-gray{background:none;color:var(--muted);border-color:var(--border)}
+.btn-gray:hover{background:#f5f5f3}
+.btn-red{background:none;color:var(--red);border-color:#fad7d4}
+.btn-red:hover{background:#fdf0f0}
+.btn-full{width:100%;padding:14px;font-size:16px}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:8px}
+
+/* ── Action bar ── */
+.action-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1.5px solid var(--border);padding:10px 1rem;padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:50;box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+
+/* ── Form ── */
+label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+input,select{width:100%;padding:11px 13px;border:2px solid var(--border);border-radius:var(--rsm);background:#fafaf8;font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--text);-webkit-appearance:none;appearance:none;box-sizing:border-box;max-width:100%;transition:border-color .2s}
+input:focus,select:focus{outline:none;border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(52,152,219,.12)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;cursor:pointer}
+.form-row{display:flex;gap:10px;margin-bottom:10px}
+.form-group{flex:1;min-width:0;margin-bottom:10px}
+.form-group:last-child{margin-bottom:0}
+
+/* ── 即時登記按鈕組 ── */
+.player-row{background:#fafaf8;border:2px solid var(--border);border-radius:var(--rsm);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;transition:border-color .2s}
+.player-row:active{border-color:var(--blue)}
+.p-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;font-family:'Nunito',sans-serif;flex-shrink:0}
+.p-name{font-weight:700;font-size:14px;flex:1;min-width:0}
+.p-streak{font-size:11px;color:var(--orange);font-weight:700;display:flex;align-items:center;gap:2px}
+.action-btns{display:flex;gap:6px;flex-shrink:0}
+.act-btn{width:44px;height:36px;border:2px solid;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px;line-height:1}
+.act-btn:active{transform:scale(.9)}
+.act-btn .act-label{font-size:9px;font-weight:700;font-family:'Noto Sans TC',sans-serif}
+.btn-zimo{background:#eafaf1;color:var(--green-dark);border-color:#a9dfbf}
+.btn-zimo:active,.btn-zimo.flash{background:var(--green);color:#fff}
+.btn-hu{background:#eaf4fd;color:var(--blue-dark);border-color:#aed9f5}
+.btn-hu:active,.btn-hu.flash{background:var(--blue);color:#fff}
+.btn-fang{background:#fdf0f0;color:var(--red-dark);border-color:#f5c6c6}
+.btn-fang:active,.btn-fang.flash{background:var(--red);color:#fff}
+
+/* ── 積分看板 ── */
+.board-row{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:10px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)}
+.board-row.dealer{border-color:var(--orange);background:#fefcec}
+.b-avatar{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;font-family:'Nunito',sans-serif;flex-shrink:0}
+.b-name{font-weight:700;font-size:16px}
+.b-score{font-family:'Nunito',sans-serif;font-weight:900;font-size:26px;margin-left:auto}
+.b-score.pos{color:var(--green-dark)}
+.b-score.neg{color:var(--red-dark)}
+
+/* ── 台數 stepper ── */
+.tai-stepper{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px}
+.tai-stepper button{width:44px;height:44px;border-radius:50%;border:2px solid var(--border);background:#fafaf8;font-size:20px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif}
+.tai-stepper button:active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.tai-stepper input{width:70px;text-align:center;font-size:20px;font-weight:800;padding:8px 4px;font-family:'Nunito',sans-serif}
+
+/* ── 統計 ── */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:12px}
+.stat-card{border-radius:var(--rsm);padding:14px 12px;border:2px solid;text-align:center}
+.stat-name{font-size:13px;font-weight:700;margin-bottom:8px}
+.stat-row{display:flex;justify-content:space-around;margin-bottom:6px}
+.stat-item{text-align:center}
+.stat-item-val{font-size:18px;font-weight:900;font-family:'Nunito',sans-serif}
+.stat-item-label{font-size:10px;color:var(--muted);margin-top:1px}
+.stat-rate{font-size:12px;font-weight:700;margin-top:6px;padding-top:6px;border-top:1px dashed var(--border)}
+
+/* ── 局紀錄 ── */
+.log-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--border);font-size:14px}
+.log-item:last-child{border-bottom:none}
+.log-time{font-size:11px;color:var(--muted);min-width:44px}
+.log-tag{padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;flex-shrink:0}
+.tag-zimo{background:#eafaf1;color:var(--green-dark)}
+.tag-hu{background:#eaf4fd;color:var(--blue-dark)}
+.tag-fang{background:#fdf0f0;color:var(--red-dark)}
+.log-desc{flex:1;font-size:13px}
+.log-streak{font-size:11px;color:var(--orange);font-weight:700;margin-left:4px}
+.undo-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:4px;border-radius:6px}
+.undo-btn:active{color:var(--red)}
+
+/* ── 場次卡 ── */
+.session-head{background:linear-gradient(135deg,#2c3e50,#3d5166);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-radius:var(--rsm) var(--rsm) 0 0;cursor:pointer;user-select:none}
+.session-logs{display:none;background:#fafaf8;border:1.5px solid var(--border);border-top:none;padding:8px 16px}
+.session-logs.open{display:block}
+.history-log-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--border);font-size:13px}
+.history-log-item:last-child{border-bottom:none}
+.session-body{background:#fff;padding:12px 16px;border-radius:0 0 var(--rsm) var(--rsm);border:1.5px solid var(--border);border-top:none}
+.session-wrap{border-radius:var(--rsm);overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px}
+
+/* ── Chip ── */
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid}
+.chip-green{background:#eafaf1;color:var(--green-dark);border-color:#a9dfbf}
+.chip-blue{background:#eaf4fd;color:var(--blue-dark);border-color:#aed9f5}
+.chip-orange{background:#fef5e7;color:#d35400;border-color:#fad7a0}
+.chip-gray{background:#f5f5f3;color:#666;border-color:#ddd}
+
+/* ── Member chip ── */
+.member-chip{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;background:#fff;border:2px solid var(--border);font-size:14px;font-weight:700}
+.member-chip .rm{background:none;border:none;cursor:pointer;color:#ccc;font-size:17px;padding:0;line-height:1}
+.member-chip .rm:active{color:var(--red)}
+.member-list{display:flex;flex-wrap:wrap;gap:6px}
+
+/* ── Picker ── */
+.picker-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;border:2px solid var(--border);background:#fff;cursor:pointer;font-size:14px;font-weight:700;font-family:'Noto Sans TC',sans-serif;transition:all .15s;margin:3px}
+.picker-btn.sel{border-color:var(--green);background:#eafaf1;color:var(--green-dark)}
+
+/* ── Misc ── */
+.empty{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.empty .ei{font-size:48px;margin-bottom:12px;display:block}
+.loading{text-align:center;padding:2rem 0;color:var(--muted)}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:#2c3e50;color:#fff;padding:10px 22px;border-radius:30px;font-size:14px;font-weight:600;opacity:0;transition:all .3s;z-index:9999;pointer-events:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
+.badge{background:var(--orange);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;font-family:'Nunito',sans-serif}
+
+/* Avatar colors */
+.av0{background:#fde8e8;color:#c0392b}.av1{background:#e8f4fd;color:#2980b9}
+.av2{background:#eafaf1;color:#27ae60}.av3{background:#fefcec;color:#b7770d}
+.av4{background:#f5eef8;color:#8e44ad}.av5{background:#fef5e7;color:#d35400}
+.av6{background:#e8f8f5;color:#1abc9c}.av7{background:#fdedec;color:#e74c3c}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">🀄 麻將戰績 積分版</div>
+    <div class="header-sub" id="sync-status">連線中...</div>
+  </div>
+  <div id="sync-dot" class="sync-dot"></div>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="go('live')" id="nav-live"><span class="icon">🎮</span>操作</button>
+  <button class="nav-btn" onclick="go('board')" id="nav-board"><span class="icon">🏆</span>積分看板</button>
+  <button class="nav-btn" onclick="go('stats')" id="nav-stats"><span class="icon">📊</span>統計</button>
+  <button class="nav-btn" onclick="go('history')" id="nav-history"><span class="icon">📋</span>歷史</button>
+  <button class="nav-btn" onclick="go('members')" id="nav-members"><span class="icon">👥</span>成員</button>
+</nav>
+
+<!-- ═══ 即時記錄 ═══ -->
+<div class="page active" id="page-live">
+  <!-- 場次未開始 -->
+  <div id="no-session">
+    <div class="sec">🎮 開始新場次</div>
+    <div class="card">
+
+      <div class="form-group">
+        <label>選擇本局參與成員</label>
+        <div id="member-picker" style="display:flex;flex-wrap:wrap;margin-top:4px"></div>
+      </div>
+
+      <div class="sec">⚙️ 計分設定</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>底（金額）</label>
+          <input type="number" id="setting-di" value="10" min="0">
+        </div>
+        <div class="form-group">
+          <label>台（金額）</label>
+          <input type="number" id="setting-tai" value="10" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>基本籌碼</label>
+        <input type="number" id="setting-chips" value="1000" min="0">
+      </div>
+    </div>
+    <button class="btn btn-green btn-full" onclick="startSession()">🀄 開始記錄</button>
+  </div>
+
+  <!-- 場次進行中 -->
+  <div id="in-session" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div>
+        <div style="font-size:15px;font-weight:700" id="session-info"></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px" id="session-count"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#e67e22,#f39c12);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif;box-shadow:0 2px 8px rgba(243,156,18,.4)" id="wind-display">東</div>
+        <button class="btn btn-sm btn-red" onclick="endSession()">結束場次</button>
+      </div>
+    </div>
+
+    <!-- 連莊提示 -->
+    <div id="streak-banner" style="display:none;background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;border-radius:var(--rsm);padding:10px 14px;margin-bottom:10px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px"></div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="sec" style="margin:0">⚡ 即時登記</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm btn-gray" onclick="logDraw()">🌀 流局</button>
+        <button class="btn btn-sm btn-gray" onclick="showSubModal()">🔄 換人</button>
+      </div>
+    </div>
+    <div id="live-players"></div>
+
+    <!-- 胡牌 Modal -->
+    <div id="hu-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center">
+      <div style="background:#fff;border-radius:20px 20px 0 0;padding:1.5rem 1rem calc(1.5rem + env(safe-area-inset-bottom));width:100%;max-width:640px">
+        <div style="font-size:16px;font-weight:800;margin-bottom:16px;text-align:center">✋ <span id="hu-winner-name"></span> 胡牌</div>
+        <div style="font-size:13px;font-weight:700;color:var(--muted);text-align:center;margin-bottom:8px">台數</div>
+        <div class="tai-stepper">
+          <button type="button" onclick="changeTai(-1,'hu')">－</button>
+          <input type="number" id="hu-tai-input" value="1" min="0">
+          <button type="button" onclick="changeTai(1,'hu')">＋</button>
+        </div>
+        <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:16px">誰放槍了？</div>
+        <div id="hu-fang-list" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-gray btn-full" onclick="hideHuModal()">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 自摸 Modal -->
+    <div id="zimo-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center">
+      <div style="background:#fff;border-radius:20px 20px 0 0;padding:1.5rem 1rem calc(1.5rem + env(safe-area-inset-bottom));width:100%;max-width:640px">
+        <div style="font-size:16px;font-weight:800;margin-bottom:16px;text-align:center">🀄 <span id="zimo-player-name"></span> 自摸</div>
+        <div style="font-size:13px;font-weight:700;color:var(--muted);text-align:center;margin-bottom:8px">台數</div>
+        <div class="tai-stepper">
+          <button type="button" onclick="changeTai(-1,'zimo')">－</button>
+          <input type="number" id="zimo-tai-input" value="1" min="0">
+          <button type="button" onclick="changeTai(1,'zimo')">＋</button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-gray" style="flex:1" onclick="hideZimoModal()">取消</button>
+          <button class="btn btn-green" style="flex:1" onclick="confirmZimo()">確認自摸</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 換人 Modal -->
+    <div id="sub-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center">
+      <div style="background:#fff;border-radius:20px 20px 0 0;padding:1.5rem 1rem calc(1.5rem + env(safe-area-inset-bottom));width:100%;max-width:640px;max-height:80vh;overflow-y:auto">
+        <div style="font-size:16px;font-weight:800;margin-bottom:16px;text-align:center">🔄 換人</div>
+        <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px">換掉哪位</div>
+        <div id="sub-out-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
+        <div id="sub-in-section" style="display:none">
+          <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px">換入誰</div>
+          <div id="sub-in-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-gray" style="flex:1" onclick="hideSubModal()">取消</button>
+          <button class="btn btn-green" style="flex:1" id="sub-confirm-btn" onclick="confirmSub()" disabled>確認換人</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec" style="margin-top:1.25rem;display:flex;justify-content:space-between;align-items:center">
+      <span>📝 本場記錄</span>
+      <span id="log-count" class="badge">0</span>
+    </div>
+    <div class="card" style="padding:0 1rem">
+      <div id="live-log"><div class="empty" style="padding:1.5rem 0"><span style="color:var(--muted);font-size:13px">尚無記錄</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 積分看板 ═══ -->
+<div class="page" id="page-board">
+  <div id="board-empty" class="empty">
+    <span class="ei">🏆</span>
+    <div>尚未開始場次</div>
+  </div>
+  <div id="board-content" style="display:none">
+    <div style="text-align:center;margin-bottom:1.25rem">
+      <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#e67e22,#f39c12);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif;box-shadow:0 4px 14px rgba(243,156,18,.4);margin:0 auto 8px" id="board-wind"></div>
+      <div style="font-size:13px;color:var(--muted)" id="board-round-info"></div>
+    </div>
+    <div id="board-list"></div>
+  </div>
+</div>
+
+<!-- ═══ 統計 ═══ -->
+<div class="page" id="page-stats">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div class="sec" style="margin:0" id="stats-title">📊 月統計</div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <div style="display:flex;border:2px solid var(--border);border-radius:8px;overflow:hidden">
+        <button id="mode-month" onclick="switchStatsMode('month')"
+          style="padding:6px 12px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;background:var(--blue);color:#fff">月</button>
+        <button id="mode-day" onclick="switchStatsMode('day')"
+          style="padding:6px 12px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;background:#fff;color:var(--muted)">日</button>
+      </div>
+      <select id="stats-month" onchange="renderStats()" style="width:auto;padding:6px 30px 6px 10px;font-size:13px">
+        <option value="">載入中...</option>
+      </select>
+      <input type="date" id="stats-day" onchange="renderStats()" style="display:none;padding:6px 10px;font-size:13px;width:auto">
+    </div>
+  </div>
+  <div id="stats-content"><div class="loading"><div class="spinner"></div></div></div>
+</div>
+
+<!-- ═══ 歷史 ═══ -->
+<div class="page" id="page-history">
+  <div class="sec">📋 歷史場次</div>
+  <div id="history-list"><div class="loading"><div class="spinner"></div></div></div>
+</div>
+
+<!-- ═══ 成員 ═══ -->
+<div class="page" id="page-members">
+  <div class="sec">➕ 新增成員</div>
+  <div class="card">
+    <div style="display:flex;gap:10px;align-items:flex-end">
+      <div style="flex:1"><input type="text" id="new-member" placeholder="輸入名字" onkeydown="if(event.key==='Enter')addMember()"></div>
+      <button class="btn btn-blue" onclick="addMember()">＋</button>
+    </div>
+  </div>
+  <div class="sec">👥 目前成員</div>
+  <div class="card"><div id="member-list" class="member-list"><div class="loading"><div class="spinner"></div></div></div></div>
+
+  <div class="sec" style="margin-top:1.25rem">🔀 合併成員</div>
+  <div class="card">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.6">將某人的所有歷史記錄合併到另一人身上，合併後舊成員會被移除。</p>
+    <div class="form-group">
+      <label>合併掉（舊名字，可手動輸入）</label>
+      <input type="text" id="merge-from-input" placeholder="輸入舊名字" list="merge-from-list">
+      <datalist id="merge-from-list"></datalist>
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label>合併到（保留的）</label>
+      <select id="merge-to">
+        <option value="">— 選擇 —</option>
+      </select>
+    </div>
+    <button class="btn btn-full" onclick="mergeMembers()"
+      style="background:#f39c12;color:#fff;border-color:#f39c12">
+      🔀 執行合併
+    </button>
+  </div>
+</div>
+
+<!-- 合併確認 Modal -->
+<div id="merge-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:#fff;border-radius:var(--radius);padding:1.5rem;width:100%;max-width:400px">
+    <div style="font-size:16px;font-weight:800;margin-bottom:12px">🔀 確認合併</div>
+    <div id="merge-confirm-text" style="font-size:14px;line-height:1.7;color:var(--text);margin-bottom:16px;background:#fef9f0;padding:12px;border-radius:var(--rsm)"></div>
+    <div style="font-size:13px;color:var(--red-dark);margin-bottom:16px;font-weight:600">⚠️ 此操作無法復原，請確認後再執行。</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-gray" style="flex:1" onclick="hideMergeModal()">取消</button>
+      <button class="btn" style="flex:1;background:var(--red);color:#fff;border-color:var(--red)" onclick="confirmMerge()">確認合併</button>
+    </div>
+  </div>
+</div>
+
+<!-- 改名 Modal -->
+<div id="rename-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center">
+  <div style="background:#fff;border-radius:20px 20px 0 0;padding:1.5rem 1rem calc(1.5rem + env(safe-area-inset-bottom));width:100%;max-width:640px">
+    <div style="font-size:16px;font-weight:800;margin-bottom:16px;text-align:center">✏️ 更改暱稱</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:8px">新暱稱</div>
+    <input type="text" id="rename-input" placeholder="輸入新名字"
+      style="margin-bottom:16px"
+      onkeydown="if(event.key==='Enter')confirmRename()">
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-gray" style="flex:1" onclick="hideRenameModal()">取消</button>
+      <button class="btn btn-green" style="flex:1" onclick="confirmRename()">確認改名</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── Firebase REST ──────────────────────────────────────────────
+const DB  = 'https://mahjong-tracker-43c84-default-rtdb.asia-southeast1.firebasedatabase.app';
+const KEY = 'AIzaSyAMGKb9hg_Mv7hB3pLxVCtSCjP41Y8hN-8';
+const ROOT = 'twscore'; // 積分版獨立路徑，與原本麻將戰績（score）分開，避免互相影響
+
+async function dbGet(p){ const r=await fetch(`${DB}/${ROOT}/${p}.json?auth=${KEY}`); return r.json(); }
+async function dbPush(p,d){ const r=await fetch(`${DB}/${ROOT}/${p}.json?auth=${KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}); return r.json(); }
+async function dbSet(p,d){ await fetch(`${DB}/${ROOT}/${p}.json?auth=${KEY}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}); }
+async function dbRemove(p){ await fetch(`${DB}/${ROOT}/${p}.json?auth=${KEY}`,{method:'DELETE'}); }
+
+// ── State ──────────────────────────────────────────────────────
+let state = { members:[], sessions:[], activeSession:null };
+let openSessions = new Set(); // 記錄已展開的歷史場次
+let selectedMembers = [];
+let pollTimers = {};
+let userTyping = false, typingTimer = null;
+
+document.addEventListener('focusin', e=>{ if(e.target.matches('input,select')){ userTyping=true; clearTimeout(typingTimer); }});
+document.addEventListener('focusout', e=>{ if(e.target.matches('input,select')){ typingTimer=setTimeout(()=>userTyping=false,800); }});
+
+// ── Init ──────────────────────────────────────────────────────
+async function init(){
+  document.getElementById('sync-dot').style.opacity='1';
+  pollDB();
+  setInterval(()=>{ if(!userTyping) pollDB(); }, 5000);
+}
+
+async function pollDB(){
+  try{
+    const [members, sessions] = await Promise.all([
+      dbGet('members'), dbGet('sessions')
+    ]);
+    state.members = members ? Object.entries(members).map(([id,v])=>({id,...v})) : [];
+    state.sessions = sessions ? Object.entries(sessions).map(([id,v])=>({id,...v})).sort((a,b)=>b.startedAt-a.startedAt) : [];
+
+    // 找進行中的場次
+    const active = state.sessions.find(s=>!s.endedAt);
+    state.activeSession = active || null;
+
+    if(!userTyping){
+      renderMemberPicker();
+      renderLive();
+      renderBoard();
+      renderStats();
+      // 歷史頁面：只有在不是當前頁面、或沒有任何展開項目時才 render
+      const historyPage = document.getElementById('page-history');
+      const isViewingHistory = historyPage && historyPage.classList.contains('active');
+      if(!isViewingHistory || openSessions.size === 0) renderHistory();
+      renderMemberList();
+    }
+    document.getElementById('sync-status').textContent=`同步完成 · ${state.sessions.length} 場`;
+  } catch(e){ console.warn(e); document.getElementById('sync-status').textContent='連線中...'; }
+}
+
+// ── Navigation ────────────────────────────────────────────────
+window.go = function(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('nav-'+p).classList.add('active');
+};
+
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+const AV=['av0','av1','av2','av3','av4','av5','av6','av7'];
+function av(name){ const i=state.members.findIndex(m=>m.name===name); return AV[Math.abs(i>=0?i:name.charCodeAt(0))%8]; }
+
+// ── Members ───────────────────────────────────────────────────
+function renderMemberList(){
+  const el=document.getElementById('member-list');
+  if(!state.members.length){ el.innerHTML='<span style="color:var(--muted);font-size:14px">尚無成員</span>'; return; }
+  el.innerHTML=state.members.map(m=>`
+    <span class="member-chip" style="gap:4px">
+      <span class="${av(m.name)}" style="width:26px;height:26px;font-size:11px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800">${m.name.charAt(0)}</span>
+      ${m.name}
+      <button class="rm" onclick="renameMember('${m.id}','${m.name}')" style="color:#aaa;font-size:13px;padding:0 2px" title="改名">✏️</button>
+      <button class="rm" onclick="removeMember('${m.id}','${m.name}')">×</button>
+    </span>`).join('');
+
+  // 同步更新合併欄位
+  const toOpts = '<option value="">— 選擇 —</option>' +
+    state.members.map(m=>`<option value="${m.id}|${m.name}">${m.name}</option>`).join('');
+  const mt=document.getElementById('merge-to');
+  if(mt) mt.innerHTML=toOpts;
+  // datalist（含提示，但也可手動輸入不在列表的舊名字）
+  const dl=document.getElementById('merge-from-list');
+  if(dl) dl.innerHTML=state.members.map(m=>`<option value="${m.name}">`).join('');
+}
+
+window.addMember = async function(){
+  const inp=document.getElementById('new-member');
+  const name=inp.value.trim();
+  if(!name){ toast('請輸入名字'); return; }
+  if(state.members.find(m=>m.name===name)){ toast('成員已存在'); return; }
+  await dbPush('members',{name});
+  inp.value=''; toast(`✅ 已新增 ${name}`);
+  await pollDB();
+};
+
+window.removeMember = async function(id,name){
+  if(!confirm(`確定移除成員「${name}」嗎？
+移除後該成員將無法選入新場次（歷史記錄不受影響）。`)) return;
+  await dbRemove(`members/${id}`);
+  toast(`移除 ${name}`);
+  await pollDB();
+};
+
+// ── 改名 ─────────────────────────────────────────────────────
+let renameTarget = {id:'', oldName:''};
+
+window.renameMember = function(id, oldName){
+  renameTarget = {id, oldName};
+  const inp = document.getElementById('rename-input');
+  inp.value = oldName;
+  document.getElementById('rename-modal').style.display='flex';
+  setTimeout(()=>{ inp.focus(); inp.select(); }, 100);
+};
+
+window.confirmRename = async function(){
+  const newName = document.getElementById('rename-input').value.trim();
+  if(!newName){ toast('請輸入新名字'); return; }
+  if(newName === renameTarget.oldName){ hideRenameModal(); return; }
+  if(state.members.find(m=>m.name===newName)){ toast('此名字已存在'); return; }
+
+  const oldName = renameTarget.oldName;
+
+  // 1. 更新成員名稱
+  await dbSet(`members/${renameTarget.id}/name`, newName);
+
+  // 2. 遍歷所有場次的 logs，把舊名字換成新名字
+  const updates = [];
+  state.sessions.forEach(s => {
+    if(!s.logs) return;
+    Object.entries(s.logs).forEach(([logId, log]) => {
+      let changed = false;
+      const updated = {...log};
+
+      // 各欄位逐一檢查
+      if(updated.player === oldName){ updated.player = newName; changed = true; }
+      if(updated.winner === oldName){ updated.winner = newName; changed = true; }
+      if(updated.outPlayer === oldName){ updated.outPlayer = newName; changed = true; }
+      if(updated.inPlayer === oldName){ updated.inPlayer = newName; changed = true; }
+      if(updated.dealer === oldName){ updated.dealer = newName; changed = true; }
+
+      if(changed) updates.push({ path: `sessions/${s.id}/logs/${logId}`, data: updated });
+    });
+
+    // session.members 陣列也要更新
+    if(s.members && s.members.includes(oldName)){
+      const newMembers = s.members.map(n => n === oldName ? newName : n);
+      updates.push({ path: `sessions/${s.id}/members`, data: newMembers });
+    }
+  });
+
+  // 批次更新
+  await Promise.all(updates.map(u => dbSet(u.path, u.data)));
+
+  toast(`✅ ${oldName} → ${newName}（已更新 ${updates.length} 筆記錄）`);
+  hideRenameModal();
+  await pollDB();
+};
+
+window.hideRenameModal = function(){
+  document.getElementById('rename-modal').style.display='none';
+  renameTarget = {id:'', oldName:''};
+};
+
+// ── 合併成員 ─────────────────────────────────────────────────
+let mergeData = {fromId:'', fromName:'', toName:''};
+
+window.mergeMembers = function(){
+  const fromName = document.getElementById('merge-from-input').value.trim();
+  const toVal    = document.getElementById('merge-to').value;
+  if(!fromName || !toVal){ toast('請填寫舊名字並選擇合併目標'); return; }
+  const [toId, toName] = toVal.split('|');
+  if(fromName === toName){ toast('不能合併同一個人'); return; }
+
+  // fromId 只有在成員還存在時才有，已刪除的話設空字串
+  const fromMember = state.members.find(m=>m.name===fromName);
+  mergeData = {fromId: fromMember?.id||'', fromName, toName};
+  document.getElementById('merge-confirm-text').innerHTML =
+    `將 <strong>「${fromName}」</strong> 的所有記錄合併到 <strong>「${toName}」</strong><br>
+     合併後「${fromName}」會從成員列表移除，<br>
+     歷史記錄中的「${fromName}」全部改為「${toName}」。`;
+  document.getElementById('merge-modal').style.display='flex';
+};
+
+window.confirmMerge = async function(){
+  const {fromId, fromName, toName} = mergeData;
+  hideMergeModal();
+
+  // 遍歷所有 log，把 fromName 替換成 toName
+  const updates = [];
+  state.sessions.forEach(s => {
+    if(!s.logs) return;
+    Object.entries(s.logs).forEach(([logId, log]) => {
+      let changed = false;
+      const updated = {...log};
+      if(updated.player    === fromName){ updated.player    = toName; changed = true; }
+      if(updated.winner    === fromName){ updated.winner    = toName; changed = true; }
+      if(updated.outPlayer === fromName){ updated.outPlayer = toName; changed = true; }
+      if(updated.inPlayer  === fromName){ updated.inPlayer  = toName; changed = true; }
+      if(updated.dealer    === fromName){ updated.dealer    = toName; changed = true; }
+      if(changed) updates.push({path:`sessions/${s.id}/logs/${logId}`, data:updated});
+    });
+    // session.members 陣列
+    if(s.members && s.members.includes(fromName)){
+      const newMembers = s.members.map(n => n === fromName ? toName : n);
+      updates.push({path:`sessions/${s.id}/members`, data:newMembers});
+    }
+  });
+
+  await Promise.all(updates.map(u => dbSet(u.path, u.data)));
+
+  // 刪除舊成員（若還在成員列表才刪）
+  if(fromId) await dbRemove(`members/${fromId}`);
+
+  toast(`✅ 合併完成，共更新 ${updates.length} 筆記錄`);
+  await pollDB();
+};
+
+window.hideMergeModal = function(){
+  document.getElementById('merge-modal').style.display='none';
+  mergeData = {fromId:'', fromName:'', toName:''};
+};
+
+// ── Member Picker ─────────────────────────────────────────────
+function renderMemberPicker(){
+  if(state.activeSession) return; // 場次進行中不重畫 picker
+  const el=document.getElementById('member-picker');
+  el.innerHTML=state.members.map(m=>{
+    const sel=selectedMembers.includes(m.name);
+    return `<button class="picker-btn ${sel?'sel':''}" onclick="togglePick('${m.name}')">
+      <span class="${av(m.name)}" style="width:22px;height:22px;font-size:10px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800">${m.name.charAt(0)}</span>
+      ${m.name}${sel?' ✓':''}
+    </button>`;
+  }).join('');
+}
+
+window.togglePick = function(name){
+  const i=selectedMembers.indexOf(name);
+  if(i>=0) selectedMembers.splice(i,1); else selectedMembers.push(name);
+  renderMemberPicker();
+};
+
+// ── Session ───────────────────────────────────────────────────
+window.startSession = async function(){
+  if(selectedMembers.length<2){ toast('請至少選擇 2 位成員'); return; }
+  if(state.activeSession){ toast('已有進行中的場次'); return; }
+  // 算今天已有幾將（同一天的場次數）
+  const today = new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'});
+  const todaySessions = state.sessions.filter(s=>{
+    return new Date(s.startedAt).toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'}) === today;
+  });
+  const roundNo = todaySessions.length + 1;
+  const di = Number(document.getElementById('setting-di').value)||0;
+  const tai = Number(document.getElementById('setting-tai').value)||0;
+  const startChips = Number(document.getElementById('setting-chips').value)||0;
+  const session={
+    members:selectedMembers,
+    roundNo,
+    di, tai, startChips,
+    startedAt:Date.now(), endedAt:null, logs:{}
+  };
+  await dbPush('sessions',session);
+  toast('🀄 場次開始！');
+  selectedMembers=[];
+  await pollDB();
+};
+
+window.endSession = async function(){
+  if(!state.activeSession) return;
+  if(!confirm('確定結束這場次？')) return;
+  await dbSet(`sessions/${state.activeSession.id}/endedAt`, Date.now());
+  toast('✅ 場次結束');
+  await pollDB();
+};
+
+// ── Live Page ─────────────────────────────────────────────────
+function renderLive(){
+  const noSess=document.getElementById('no-session');
+  const inSess=document.getElementById('in-session');
+  if(!state.activeSession){
+    noSess.style.display='';
+    inSess.style.display='none';
+    renderMemberPicker();
+    return;
+  }
+  noSess.style.display='none';
+  inSess.style.display='';
+
+  const s=state.activeSession;
+  const logs=s.logs ? Object.entries(s.logs).map(([id,v])=>({id,...v})).sort((a,b)=>a.ts-b.ts) : [];
+  const members=s.members||[];
+
+  const {wind, windRound} = calcDealer(members, logs);
+  document.getElementById('session-info').textContent=`🀄 ${sessionName(s)}`;
+  document.getElementById('session-count').textContent=`${logs.length} 筆記錄 · ${new Date(s.startedAt).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})} 開始`;
+  const windEl = document.getElementById('wind-display');
+  if(windEl){ windEl.textContent=wind; windEl.title=wind+'風圈'; }
+  document.getElementById('log-count').textContent=logs.length;
+
+  // 用共用函式算當前莊家、連莊數、即時座位、風圈
+  const {dealer:currentDealer, streak:currentStreak, seats:currentSeats, wind:currentWind} = calcDealer(members, logs);
+
+  // 算每人統計（所有上場過的人）
+  const stats={};
+  currentSeats.forEach(name=>{ if(!stats[name]) stats[name]={zimo:0,hu:0,fang:0}; });
+  logs.forEach(log=>{
+    if(log.type==='sub'||log.type==='draw') return; // 換人/流局不計入統計
+    if(!stats[log.player]) stats[log.player]={zimo:0,hu:0,fang:0};
+    if(log.type==='zimo') stats[log.player].zimo++;
+    else if(log.type==='hu') stats[log.player].hu++;
+    else if(log.type==='fang'){
+      stats[log.player].fang++;
+      if(log.winner){ if(!stats[log.winner]) stats[log.winner]={zimo:0,hu:0,fang:0}; stats[log.winner].hu++; }
+    }
+  });
+
+  // 連莊提示
+  const banner=document.getElementById('streak-banner');
+  if(currentStreak>=1 && currentDealer){
+    banner.style.display='flex';
+    banner.innerHTML=currentStreak>=1
+      ? `🏯 莊家：${currentDealer}${currentStreak>=2?' 🔥 連莊 '+currentStreak+' 次':''}`
+      : '';
+  } else { banner.style.display='none'; }
+
+  // 玩家按鈕列
+  const el=document.getElementById('live-players');
+  el.innerHTML=currentSeats.map(name=>{
+    const st=stats[name]||{zimo:0,hu:0,fang:0};
+    const isDealer=name===currentDealer;
+    const streakTxt=isDealer&&currentStreak>=2?`🔥${currentStreak}連莊`:'';
+    return `<div class="player-row" style="${isDealer?'border-color:var(--orange);background:#fefcec;':''}" >
+      <div class="p-avatar ${av(name)}">${name.charAt(0)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="p-name">${name}</span>
+          ${isDealer?`<span style="font-size:10px;font-weight:800;background:var(--orange);color:#fff;padding:2px 7px;border-radius:10px">莊</span>`:''}
+          ${streakTxt?`<span class="p-streak">${streakTxt}</span>`:''}
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">自摸${st.zimo} · 胡${st.hu} · 放槍${st.fang}</div>
+      </div>
+      <div class="action-btns">
+        <button class="act-btn btn-zimo" onclick="showZimoModal('${name}')" title="自摸">
+          <span>🀄</span><span class="act-label">自摸</span>
+        </button>
+        <button class="act-btn btn-hu" onclick="showHuModal('${name}')" title="胡牌">
+          <span>✋</span><span class="act-label">胡牌</span>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // 記錄列表（最新在上）
+  const logEl=document.getElementById('live-log');
+  if(!logs.length){
+    logEl.innerHTML='<div style="padding:1.5rem 0;text-align:center;color:var(--muted);font-size:13px">尚無記錄</div>';
+    return;
+  }
+  const reversed=[...logs].reverse();
+  logEl.innerHTML=reversed.map(log=>{
+    const time=new Date(log.ts).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+    let tag='',desc='';
+    const taiTxt = (log.taiCount!==undefined && log.taiCount!==null) ? ` · ${log.taiCount}台` : '';
+    if(log.type==='zimo'){ tag='<span class="log-tag tag-zimo">自摸</span>'; desc=`${log.player} 自摸${taiTxt}`; }
+    else if(log.type==='hu'){ tag='<span class="log-tag tag-hu">胡牌</span>'; desc=`${log.player} 胡${taiTxt}`; }
+    else if(log.type==='fang'){ tag='<span class="log-tag tag-hu">胡牌</span>'; desc=`${log.winner||'?'} 胡${log.player?` （${log.player} 放槍）`:''}${taiTxt}`; }
+    else if(log.type==='draw'){ tag='<span class="log-tag" style="background:#eaf4fd;color:#2471a3;border:1.5px solid #aed9f5">流局</span>'; desc=`莊家 ${log.dealer} 連莊`; }
+    else if(log.type==='sub'){ tag='<span class="log-tag" style="background:#f5eef8;color:#7d3c98;border:1.5px solid #d2b4de">換人</span>'; desc=`${log.outPlayer} ↔ ${log.inPlayer}`; }
+    const streakNote=log.streak>=2?`<span class="log-streak">🔥${log.streak}連</span>`:'';
+    return `<div class="log-item">
+      <span class="log-time">${time}</span>
+      ${tag}
+      <span class="log-desc">${desc}${streakNote}</span>
+      <button class="undo-btn" onclick="undoLog('${log.id}')" title="撤銷">↩</button>
+    </div>`;
+  }).join('');
+}
+
+// ── 動作登記 ─────────────────────────────────────────────────
+let streakCache={name:'',count:0};
+
+window.logDraw = async function(){
+  if(!state.activeSession){ toast('請先開始場次'); return; }
+  const s=state.activeSession;
+  const logs=s.logs?Object.entries(s.logs).map(([id,v])=>({id,...v})).sort((a,b)=>a.ts-b.ts):[];
+  const {dealer,streak}=calcDealer(s.members||[], logs);
+  await dbPush(`sessions/${s.id}/logs`,{
+    type:'draw', ts:Date.now(), streak, dealer
+  });
+  toast(`🌀 流局！莊家 ${dealer} 繼續連莊`);
+  await pollDB();
+};
+
+window.logAction = async function(player, type, extra={}){
+  if(!state.activeSession){ toast('請先開始場次'); return; }
+  const s=state.activeSession;
+  const logs=s.logs ? Object.entries(s.logs).map(([id,v])=>({id,...v})).sort((a,b)=>a.ts-b.ts) : [];
+
+  // 用共用函式計算這筆記錄後的莊家和連莊數
+  const members=s.members||[];
+  const simulatedLogs=[...logs, {player, type, ...extra}];
+  const {dealer:newDealer, streak, seats} = calcDealer(members, simulatedLogs);
+  if(type==='sub') return; // sub 由 confirmSub 單獨處理
+
+  // 自摸時記錄同桌其他人（被自摸）
+  const beZimo = type==='zimo'
+    ? seats.filter(n=>n!==player && n && n!=='undefined')
+    : [];
+
+  const entry={ player, type, ts:Date.now(), streak, dealer:newDealer, ...extra };
+  if(beZimo.length) entry.beZimo = beZimo;
+  await dbPush(`sessions/${s.id}/logs`, entry);
+
+  // 按鈕閃爍
+  flashBtn(player, type);
+  const streakMsg = streak>=2 ? ` 🔥${streak}連莊` : '';
+  if(type==='zimo') toast(`🀄 ${player} 自摸！${streakMsg}`);
+  else if(type==='hu') toast(`✋ ${player} 胡牌！${streakMsg}`);
+  else if(type==='fang') toast(`💥 ${player} 放槍${extra.winner?`，${extra.winner} 胡！`:''}${streakMsg}`);
+
+  await pollDB();
+};
+
+function flashBtn(player,type){
+  const rows=document.querySelectorAll('.player-row');
+  rows.forEach(row=>{
+    if(row.textContent.includes(player)){
+      const cls=type==='zimo'?'btn-zimo':type==='hu'?'btn-hu':'btn-fang';
+      const btn=row.querySelector('.'+cls);
+      if(btn){ btn.classList.add('flash'); setTimeout(()=>btn.classList.remove('flash'),300); }
+    }
+  });
+}
+
+// 放槍需選胡的人
+let pendingFangPlayer = '';
+window.pickWinnerForFang = function(fangPlayer){
+  // 按「胡」按鈕：登記這個人胡了（不需要選放槍方）
+  logAction(fangPlayer,'hu');
+};
+
+// 長按放槍按鈕（或點兩下）可選胡的人 — 直接點就是放槍不指定誰贏
+window.logAction_fang = function(player){
+  const s=state.activeSession;
+  if(!s) return;
+  const members=(s.members||[]).filter(m=>m!==player);
+  if(members.length===1){
+    logAction(player,'fang',{winner:members[0]});
+  } else {
+    // 彈出選擇
+    const winner=prompt(`${player} 放槍給誰？\n${members.join(' / ')}`);
+    if(winner&&members.includes(winner)) logAction(player,'fang',{winner});
+    else if(winner) logAction(player,'fang');
+  }
+};
+
+// ── 胡牌 Modal ───────────────────────────────────────────────
+let huWinner = '';
+
+window.showHuModal = function(winner){
+  const s=state.activeSession;
+  if(!s){ toast('請先開始場次'); return; }
+  const logs=s.logs?Object.entries(s.logs).map(([id,v])=>({id,...v})).sort((a,b)=>a.ts-b.ts):[];
+  const {seats}=calcDealer(s.members||[], logs);
+
+  huWinner=winner;
+  document.getElementById('hu-winner-name').textContent=winner;
+  document.getElementById('hu-tai-input').value=1;
+
+  // 其他座位上的人（可能放槍）
+  const others=seats.filter(n=>n!==winner);
+  document.getElementById('hu-fang-list').innerHTML=others.map(name=>`
+    <button class="picker-btn" onclick="confirmHu('${name}')"
+      style="border-color:var(--border);min-width:80px;justify-content:center">
+      <span class="${av(name)}" style="width:22px;height:22px;font-size:10px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800">${name.charAt(0)}</span>
+      ${name}
+    </button>`).join('');
+
+  document.getElementById('hu-modal').style.display='flex';
+};
+
+window.confirmHu = async function(fangPlayer){
+  const winner = huWinner; // 先存起來，再關 modal（避免 hideHuModal 清空 huWinner）
+  const taiCount = Number(document.getElementById('hu-tai-input').value)||0;
+  if(!fangPlayer){ toast('請選擇放槍者'); return; }
+  hideHuModal();
+  await logAction(fangPlayer, 'fang', {winner, taiCount});
+};
+
+window.hideHuModal = function(){
+  document.getElementById('hu-modal').style.display='none';
+  huWinner='';
+};
+
+// ── 自摸 Modal ───────────────────────────────────────────────
+let zimoPlayer = '';
+
+window.showZimoModal = function(name){
+  if(!state.activeSession){ toast('請先開始場次'); return; }
+  zimoPlayer = name;
+  document.getElementById('zimo-player-name').textContent = name;
+  document.getElementById('zimo-tai-input').value = 1;
+  document.getElementById('zimo-modal').style.display='flex';
+};
+
+window.hideZimoModal = function(){
+  document.getElementById('zimo-modal').style.display='none';
+  zimoPlayer='';
+};
+
+window.confirmZimo = async function(){
+  const name = zimoPlayer;
+  const taiCount = Number(document.getElementById('zimo-tai-input').value)||0;
+  hideZimoModal();
+  await logAction(name, 'zimo', {taiCount});
+};
+
+// ── 台數 +/- 共用邏輯 ────────────────────────────────────────
+window.changeTai = function(delta, which){
+  const inp = document.getElementById(which+'-tai-input');
+  if(!inp) return;
+  const next = Math.max(0, (Number(inp.value)||0) + delta);
+  inp.value = next;
+};
+
+// ── 換人 Modal ────────────────────────────────────────────────
+let subOut='', subIn='';
+
+window.showSubModal = function(){
+  const s=state.activeSession;
+  if(!s){ toast('請先開始場次'); return; }
+  const logs=s.logs?Object.entries(s.logs).map(([id,v])=>({id,...v})).sort((a,b)=>a.ts-b.ts):[];
+  const {seats}=calcDealer(s.members||[], logs);
+
+  subOut=''; subIn='';
+  document.getElementById('sub-confirm-btn').disabled=true;
+  document.getElementById('sub-in-section').style.display='none';
+
+  // 列出目前座位上的人（可換出）
+  document.getElementById('sub-out-list').innerHTML=seats.map(name=>`
+    <button class="picker-btn" id="sub-out-${name}" onclick="selectSubOut('${name}')"
+      style="border-color:var(--border)">
+      <span class="${av(name)}" style="width:22px;height:22px;font-size:10px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800">${name.charAt(0)}</span>
+      ${name}
+    </button>`).join('');
+
+  document.getElementById('sub-modal').style.display='flex';
+};
+
+window.selectSubOut = function(name){
+  subOut=name; subIn='';
+  document.querySelectorAll('#sub-out-list .picker-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('sub-out-'+name)?.classList.add('sel');
+
+  // 列出可換入的人（資料庫成員 - 已在場上的人）
+  const s=state.activeSession;
+  const logs=s.logs?Object.entries(s.logs).map(([id,v])=>({id,...v})).sort((a,b)=>a.ts-b.ts):[];
+  const {seats}=calcDealer(s.members||[], logs);
+  const available=state.members.map(m=>m.name).filter(n=>!seats.includes(n));
+
+  if(!available.length){
+    document.getElementById('sub-in-list').innerHTML='<span style="color:var(--muted);font-size:13px">沒有可換入的成員（請先在「成員」頁面新增）</span>';
+  } else {
+    document.getElementById('sub-in-list').innerHTML=available.map(name=>`
+      <button class="picker-btn" id="sub-in-${name}" onclick="selectSubIn('${name}')"
+        style="border-color:var(--border)">
+        <span class="${av(name)}" style="width:22px;height:22px;font-size:10px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800">${name.charAt(0)}</span>
+        ${name}
+      </button>`).join('');
+  }
+  document.getElementById('sub-in-section').style.display='';
+  document.getElementById('sub-confirm-btn').disabled=true;
+};
+
+window.selectSubIn = function(name){
+  subIn=name;
+  document.querySelectorAll('#sub-in-list .picker-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('sub-in-'+name)?.classList.add('sel');
+  document.getElementById('sub-confirm-btn').disabled=false;
+};
+
+window.confirmSub = async function(){
+  if(!subOut||!subIn){ toast('請選擇換出和換入的人'); return; }
+  const s=state.activeSession;
+  await dbPush(`sessions/${s.id}/logs`,{
+    type:'sub', outPlayer:subOut, inPlayer:subIn, ts:Date.now(), streak:0
+  });
+  toast(`🔄 ${subOut} 換出，${subIn} 換入`);
+  hideSubModal();
+  await pollDB();
+};
+
+window.hideSubModal = function(){
+  document.getElementById('sub-modal').style.display='none';
+  subOut=''; subIn='';
+};
+
+window.undoLog = async function(logId){
+  if(!state.activeSession) return;
+  if(!confirm('確定撤銷這筆記錄？此操作無法復原。')) return;
+  await dbRemove(`sessions/${state.activeSession.id}/logs/${logId}`);
+  toast('↩ 已撤銷');
+  await pollDB();
+};
+
+// ── Stats ─────────────────────────────────────────────────────
+window.switchStatsMode = function(mode){
+  const monthSel = document.getElementById('stats-month');
+  const dayInp   = document.getElementById('stats-day');
+  const btnMonth = document.getElementById('mode-month');
+  const btnDay   = document.getElementById('mode-day');
+  if(mode==='month'){
+    monthSel.style.display=''; dayInp.style.display='none';
+    btnMonth.style.background='var(--blue)'; btnMonth.style.color='#fff';
+    btnDay.style.background='#fff'; btnDay.style.color='var(--muted)';
+    document.getElementById('stats-title').textContent='📊 月統計';
+  } else {
+    monthSel.style.display='none'; dayInp.style.display='';
+    btnDay.style.background='var(--blue)'; btnDay.style.color='#fff';
+    btnMonth.style.background='#fff'; btnMonth.style.color='var(--muted)';
+    document.getElementById('stats-title').textContent='📊 日統計';
+    // 預設今天
+    if(!dayInp.value) dayInp.value=new Date().toISOString().slice(0,10);
+  }
+  renderStats();
+};
+
+window.renderStats = function(){
+  // 從所有場次整理出有資料的月份
+  const monthSet = new Set();
+  state.sessions.forEach(s=>{
+    const d = new Date(s.startedAt);
+    monthSet.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+  });
+  const months = [...monthSet].sort().reverse();
+
+  // 更新月份下拉
+  const sel = document.getElementById('stats-month');
+  if(!months.length){
+    sel.innerHTML='<option value="">尚無資料</option>';
+    document.getElementById('stats-content').innerHTML='<div class="empty"><span class="ei">🔍</span><p>尚無資料</p></div>';
+    return;
+  }
+  const cur = sel.value; // 記住目前選的
+  sel.innerHTML = months.map(m=>{
+    const [y,mo] = m.split('-');
+    return `<option value="${m}">${y}年${parseInt(mo)}月</option>`;
+  }).join('');
+  // 還原選擇，若原本的月份還存在就保留，否則預設最新
+  sel.value = (cur && months.includes(cur)) ? cur : months[0];
+  const selectedMonth = sel.value;
+
+  // 判斷目前模式
+  const dayInp = document.getElementById('stats-day');
+  const isDay  = dayInp && dayInp.style.display!=='none';
+
+  let sessions;
+  let periodLabel;
+  if(isDay){
+    const selectedDay = dayInp.value;
+    if(!selectedDay){ document.getElementById('stats-content').innerHTML='<div class="empty"><span class="ei">📅</span><p>請選擇日期</p></div>'; return; }
+    sessions = state.sessions.filter(s=>{
+      return new Date(s.startedAt).toISOString().slice(0,10)===selectedDay;
+    });
+    const d=new Date(selectedDay);
+    periodLabel=`${d.getMonth()+1}月${d.getDate()}日`;
+  } else {
+    sessions = state.sessions.filter(s=>{
+      const d = new Date(s.startedAt);
+      const m = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      return m === selectedMonth;
+    });
+    periodLabel=selectedMonth;
+  }
+
+  // 累計統計
+  const totals = {};
+  sessions.forEach(s=>{
+    const logs = s.logs ? Object.values(s.logs) : [];
+    const sortedLogs = s.logs ? Object.entries(s.logs).map(([id,v])=>({id,...v})).sort((a,b)=>a.ts-b.ts) : [];
+    const isValid = name => name && name !== 'undefined' && name.trim() !== '';
+    const hasSub = sortedLogs.some(l=>l.type==='sub');
+    const dealerCounts = calcDealerCount(s.members||[], sortedLogs);
+
+    // 找出這場被換出或換入的人（曾經被換的人算圈數，沒被換的算將）
+    const swappedOut = new Set(sortedLogs.filter(l=>l.type==='sub').map(l=>l.outPlayer));
+    const swappedIn  = new Set(sortedLogs.filter(l=>l.type==='sub').map(l=>l.inPlayer));
+    const swapped = new Set([...swappedOut, ...swappedIn]);
+
+    // 以個人為單位判斷：沒被換過的人算1將，被換過的人算圈數
+    (s.members||[]).forEach(name=>{
+      if(!name || name==='undefined') return;
+      if(!totals[name]) totals[name]={zimo:0,hu:0,fang:0,beZimo:0,sessions:0,dealerCount:0,maxStreak:0};
+      if(!swapped.has(name)){
+        // 全程在場，記 1將
+        totals[name].sessions++;
+      }
+    });
+
+    // 換人相關的人（換入者）算圈數
+    Object.entries(dealerCounts).forEach(([name,cnt])=>{
+      if(!isValid(name)) return;
+      if(swapped.has(name)){
+        if(!totals[name]) totals[name]={zimo:0,hu:0,fang:0,beZimo:0,sessions:0,dealerCount:0,maxStreak:0};
+        totals[name].dealerCount=(totals[name].dealerCount||0)+cnt;
+      }
+    });
+    // 確保換入的人有 entry
+    sortedLogs.filter(l=>l.type==='sub').forEach(log=>{
+      if(isValid(log.inPlayer) && !totals[log.inPlayer])
+        totals[log.inPlayer]={zimo:0,hu:0,fang:0,beZimo:0,sessions:0,dealerCount:0,maxStreak:0};
+    });
+
+    // 取得這場座位（用於被自摸計算）
+    const {seats:sessionSeats} = calcDealer(s.members||[], sortedLogs);
+
+    logs.forEach(log=>{
+      if(log.type==='sub'||log.type==='draw') return;
+      if(!isValid(log.player)) return;
+      if(!totals[log.player]) totals[log.player]={zimo:0,hu:0,fang:0,beZimo:0,sessions:0,dealerCount:0,maxStreak:0};
+      if(log.type==='zimo'){
+        totals[log.player].zimo++;
+        // Firebase 可能把陣列存成物件 {0:'A', 1:'B'}，需要轉回陣列
+        const beZimoRaw = log.beZimo;
+        const beZimoList = Array.isArray(beZimoRaw)
+          ? beZimoRaw
+          : (beZimoRaw && typeof beZimoRaw==='object' ? Object.values(beZimoRaw) : []);
+        beZimoList.forEach(name=>{
+          if(!isValid(name)) return;
+          if(!totals[name]) totals[name]={zimo:0,hu:0,fang:0,beZimo:0,sessions:0,dealerCount:0,maxStreak:0};
+          totals[name].beZimo++;
+        });
+      } else if(log.type==='hu') totals[log.player].hu++;
+      else if(log.type==='fang') totals[log.player].fang++;
+      if(log.type==='fang' && isValid(log.winner)){
+        if(!totals[log.winner]) totals[log.winner]={zimo:0,hu:0,fang:0,beZimo:0,sessions:0,dealerCount:0,maxStreak:0};
+        totals[log.winner].hu++;
+      }
+      // 最長連莊
+      if(log.streak && log.streak > (totals[log.player].maxStreak||0)){
+        totals[log.player].maxStreak = log.streak;
+      }
+    });
+  });
+
+  const el = document.getElementById('stats-content');
+
+  // 月份/日期總覽
+  const totalLogs = sessions.reduce((s,sess)=>s+(sess.logs?Object.values(sess.logs).length:0),0);
+  const overviewTitle = isDay ? `📅 ${periodLabel} 戰況` : `📊 ${periodLabel} 統計`;
+  let html = `
+    <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px">${overviewTitle}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+      <div class="card" style="text-align:center;padding:12px 8px;margin-bottom:0">
+        <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px">場次</div>
+        <div style="font-size:22px;font-weight:900;font-family:'Nunito',sans-serif">${sessions.length}</div>
+      </div>
+      <div class="card" style="text-align:center;padding:12px 8px;margin-bottom:0">
+        <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px">記錄筆數</div>
+        <div style="font-size:22px;font-weight:900;font-family:'Nunito',sans-serif">${totalLogs}</div>
+      </div>
+      <div class="card" style="text-align:center;padding:12px 8px;margin-bottom:0">
+        <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px">參與人數</div>
+        <div style="font-size:22px;font-weight:900;font-family:'Nunito',sans-serif">${Object.keys(totals).length}</div>
+      </div>
+    </div>
+    <div class="sec">🏆 個人戰績</div>
+    <div class="stat-grid">`;
+
+  // 依自摸+胡排序
+  Object.entries(totals)
+    .sort((a,b)=>(b[1].zimo+b[1].hu)-(a[1].zimo+a[1].hu))
+    .forEach(([name,st],rank)=>{
+      const wins = st.zimo + st.hu;
+      const cls = wins>st.fang?'chip-green':wins<st.fang?'chip-red':'chip-gray';
+      const medal = rank===0?'🥇':rank===1?'🥈':rank===2?'🥉':'';
+      const circles = dealerCountToCircles(st.dealerCount||0);
+      // 組合將和圈的顯示
+      const parts = [];
+      if(st.sessions > 0) parts.push(st.sessions+'將');
+      if(circles > 0) parts.push(circles+'圈');
+      const participationText = parts.length > 0 ? parts.join(' ') : '—';
+      html += `<div class="stat-card" style="background:#fafaf8;border-color:var(--border)">
+        <div class="stat-name">${medal} ${name}</div>
+        <div class="stat-row">
+          <div class="stat-item"><div class="stat-item-val" style="color:var(--green-dark)">${st.zimo}</div><div class="stat-item-label">自摸</div></div>
+          <div class="stat-item"><div class="stat-item-val" style="color:var(--blue-dark)">${st.hu}</div><div class="stat-item-label">胡牌</div></div>
+          <div class="stat-item"><div class="stat-item-val" style="color:var(--red-dark)">${st.fang}</div><div class="stat-item-label">放槍</div></div>
+          <div class="stat-item"><div class="stat-item-val" style="color:#888">${st.beZimo||0}</div><div class="stat-item-label">被自摸</div></div>
+        </div>
+        <div class="stat-rate"><span class="chip ${cls}" style="padding:2px 8px">${wins}勝 ${st.fang}槍</span> <span style="color:var(--muted);font-size:12px">${participationText}</span></div>
+      </div>`;
+    });
+
+  html += `</div>`;
+
+  // ── 排行榜 ──────────────────────────────────────────────────
+  // 門檻：2將(8圈)以上，1將=4圈，所以 sessions*4 + circles >= 8
+  const qualified = Object.entries(totals).filter(([name, st])=>{
+    const totalCircles = (st.sessions||0)*4 + (st.dealerCount||0);
+    return totalCircles >= 8;
+  });
+
+  if(qualified.length >= 2){
+    // 參與圈數（用於計算率）
+    const getCircles = st => (st.sessions||0)*4 + dealerCountToCircles(st.dealerCount||0);
+    // 參與局數（自摸+胡+放槍+被自摸）
+    const getTotal = st => (st.zimo||0)+(st.hu||0)+(st.fang||0)+(st.beZimo||0);
+
+    const rankings = [
+      { title:'🀄 自摸王', key:'zimo', higher:true, format: v=>`${v}次` },
+      { title:'📊 自摸均圈', higher:true,
+        getValue: st=> getCircles(st)>0 ? (st.zimo||0)/getCircles(st) : 0,
+        format: v=>`${v.toFixed(2)}次/圈` },
+      { title:'✋ 胡牌王', key:'hu', higher:true, format: v=>`${v}次` },
+      { title:'📊 胡牌均圈', higher:true,
+        getValue: st=> getCircles(st)>0 ? (st.hu||0)/getCircles(st) : 0,
+        format: v=>`${v.toFixed(2)}次/圈` },
+      { title:'💥 放槍王', key:'fang', higher:true, format: v=>`${v}次` },
+      { title:'📊 放槍均圈', higher:true,
+        getValue: st=> getCircles(st)>0 ? (st.fang||0)/getCircles(st) : 0,
+        format: v=>`${v.toFixed(2)}次/圈` },
+      { title:'🔥 最常連莊', key:'maxStreak', higher:true, format: v=>`${v}連` },
+      { title:'🫠 被摸爛', key:'beZimo', higher:true, format: v=>`${v}次` },
+    ];
+
+    html += `<div class="sec" style="margin-top:1rem">🏆 排行榜 <span style="font-size:11px;font-weight:400;color:var(--muted)">（門檻：2將或8圈以上）</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:14px">`;
+
+    rankings.forEach(r=>{
+      const sorted = [...qualified].map(([name,st])=>({
+        name,
+        val: r.getValue ? r.getValue(st) : (st[r.key]||0)
+      })).sort((a,b)=> r.higher ? b.val-a.val : a.val-b.val)
+        .filter(x=>x.val>0);
+
+      const top3 = [];
+      let lastVal = null, lastRank = 0;
+      sorted.forEach(x=>{
+        if(top3.length>=3 && x.val!==lastVal) return;
+        if(x.val!==lastVal){ lastRank++; lastVal=x.val; }
+        if(lastRank>3) return;
+        top3.push({...x, rank:lastRank});
+      });
+
+      const medals = ['🥇','🥈','🥉'];
+      const rows = top3.map(x=>
+        `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px dashed var(--border);font-size:13px">
+          <span>${medals[x.rank-1]} ${x.name}</span>
+          <span style="font-weight:800;font-family:'Nunito',sans-serif">${r.format(x.val)}</span>
+        </div>`
+      ).join('');
+
+      html += `<div class="card" style="margin-bottom:0;padding:12px">
+        <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px">${r.title}</div>
+        ${rows||'<div style="font-size:12px;color:var(--muted)">資料不足</div>'}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // 本月場次列表
+  html += `<div class="sec" style="margin-top:1rem">📋 本月場次</div><div class="card" style="padding:0 1rem">`;
+  if(!sessions.length){
+    html += `<div style="padding:1rem 0;text-align:center;color:var(--muted);font-size:13px">無場次</div>`;
+  } else {
+    sessions.forEach(s=>{
+      const logs = s.logs ? Object.values(s.logs) : [];
+      const dur = s.endedAt ? Math.round((s.endedAt-s.startedAt)/60000)+'分鐘' : '進行中';
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed var(--border)">
+        <span style="font-weight:700;font-size:14px">${sessionName(s)}</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="chip chip-gray">${logs.length}筆</span>
+          <span class="chip chip-gray">${dur}</span>
+        </div>
+      </div>`;
+    });
+    html = html.replace(/<\/div>$/, '') + `</div></div>`;
+  }
+  html += `</div>`;
+
+  el.innerHTML = html;
+};
+
+// ── History ───────────────────────────────────────────────────
+function historyLogTag(log){
+  if(log.type==='zimo') return `<span class="log-tag tag-zimo">自摸</span>`;
+  if(log.type==='hu')   return `<span class="log-tag tag-hu">胡牌</span>`;
+  if(log.type==='fang') return `<span class="log-tag tag-fang">放槍</span>`;
+  if(log.type==='draw') return `<span class="log-tag" style="background:#eaf4fd;color:#2471a3;border:1.5px solid #aed9f5">流局</span>`;
+  if(log.type==='sub')  return `<span class="log-tag" style="background:#f5eef8;color:#7d3c98;border:1.5px solid #d2b4de">換人</span>`;
+  return '';
+}
+
+function historyLogDesc(log){
+  if(log.type==='zimo') return `${log.player} 自摸`;
+  if(log.type==='hu')   return `${log.player} 胡`;
+  if(log.type==='fang') return `${log.winner||'?'} 胡（${log.player} 放槍）`;
+  if(log.type==='draw') return `流局，莊家 ${log.dealer||''} 繼續`;
+  if(log.type==='sub')  return `${log.outPlayer} ↔ ${log.inPlayer}`;
+  return '';
+}
+
+function renderHistory(){
+  const el=document.getElementById('history-list');
+  if(!state.sessions.length){ el.innerHTML='<div class="empty"><span class="ei">🀄</span><p>尚無歷史場次</p></div>'; return; }
+  el.innerHTML=state.sessions.map(s=>{
+    const sortedLogs=s.logs
+      ? Object.entries(s.logs).map(([id,v])=>({id,...v})).sort((a,b)=>a.ts-b.ts)
+      : [];
+    const dur=s.endedAt?Math.round((s.endedAt-s.startedAt)/60000)+'分鐘':'進行中';
+    const members=(s.members||[]).filter(n=>n&&n!=='undefined')
+      .map(name=>`<span class="chip chip-gray" style="margin:2px">${name}</span>`).join('');
+    const status=s.endedAt
+      ? `<span class="chip chip-gray">${dur}</span>`
+      : `<span class="chip chip-green">🟢 進行中</span>`;
+    const isOpen = openSessions.has(s.id);
+
+    const logRows = sortedLogs.map(log=>{
+      const time=new Date(log.ts).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+      const streakNote=log.streak>=2?`<span style="font-size:11px;color:var(--orange);font-weight:700">🔥${log.streak}連</span>`:'';
+      return `<div class="history-log-item">
+        <span style="font-size:11px;color:var(--muted);min-width:36px">${time}</span>
+        ${historyLogTag(log)}
+        <span style="flex:1;font-size:13px">${historyLogDesc(log)}</span>
+        ${streakNote}
+      </div>`;
+    }).join('');
+
+    return `<div class="session-wrap">
+      <div class="session-head" onclick="toggleHistory('${s.id}')">
+        <div>
+          <div style="color:#fff;font-weight:700;font-size:14px">🀄 ${sessionName(s)}</div>
+          <div style="color:rgba(255,255,255,.6);font-size:12px;margin-top:2px">${new Date(s.startedAt).toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          ${status}
+          <span class="chip chip-blue">${sortedLogs.length}筆</span>
+          <span style="color:rgba(255,255,255,.6);font-size:14px" id="arrow-${s.id}">${isOpen?'▼':'▶'}</span>
+        </div>
+      </div>
+      <div class="session-body">
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:${members?'6px':'0'}">${members}</div>
+        ${s.endedAt?`<div style="text-align:right"><button class="btn btn-sm btn-red" onclick="event.stopPropagation();deleteSession('${s.id}')" style="background:rgba(231,76,60,.15);border-color:#f5c6c6;color:var(--red-dark);font-size:12px">🗑 刪除</button></div>`:''}
+      </div>
+      <div class="session-logs ${isOpen?'open':''}" id="logs-${s.id}">
+        ${logRows||'<div style="padding:8px 0;color:var(--muted);font-size:13px">尚無記錄</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.toggleHistory = function(sid){
+  const el=document.getElementById('logs-'+sid);
+  const arrow=document.getElementById('arrow-'+sid);
+  if(!el) return;
+  el.classList.toggle('open');
+  const isOpen = el.classList.contains('open');
+  if(isOpen) openSessions.add(sid); else openSessions.delete(sid);
+  if(arrow) arrow.textContent=isOpen?'▼':'▶';
+};
+
+window.deleteSession = async function(id){
+  const s = state.sessions.find(s=>s.id===id);
+  const name = s ? sessionName(s) : '此場次';
+  if(!confirm(`確定刪除「${name}」的所有記錄嗎？
+此操作無法復原。`)) return;
+  await dbRemove(`sessions/${id}`);
+  toast('🗑 已刪除');
+  await pollDB();
+};
+
+// ── 計算每人當莊圈數 ─────────────────────────────────────────
+// 規則：莊家換人才算一圈，連莊不算
+function calcDealerCount(members, logs){
+  if(!members.length) return {};
+  let seats=[...members];
+  let dealerIdx=0;
+  const counts={};
+  let lastDealer=''; // 上一個莊家，用來偵測是否換莊
+
+  logs.forEach(log=>{
+    if(log.type==='sub'){
+      const seatIdx=seats.indexOf(log.outPlayer);
+      if(seatIdx>=0) seats[seatIdx]=log.inPlayer;
+      // 如果被換下去的是莊家，重置 lastDealer
+      // 這樣換上來的人在下一局會被正確記圈
+      if(seatIdx===dealerIdx) lastDealer='';
+      return;
+    }
+    if(log.type==='draw'||log.type==='sub') return;
+    if(log.type!=='zimo'&&log.type!=='hu'&&log.type!=='fang') return;
+
+    const dealer=seats[dealerIdx];
+
+    // 只有莊家換人時才記圈（新莊家第一次上場）
+    if(dealer !== lastDealer){
+      counts[dealer]=(counts[dealer]||0)+1;
+      lastDealer=dealer;
+    }
+
+    // 判斷輪轉
+    if(log.type==='zimo'){
+      if(log.player!==dealer) dealerIdx=(dealerIdx+1)%seats.length;
+    } else if(log.type==='hu'){
+      if(log.player!==dealer) dealerIdx=(dealerIdx+1)%seats.length;
+    } else if(log.type==='fang'){
+      if(!log.winner||log.winner!==dealer) dealerIdx=(dealerIdx+1)%seats.length;
+    }
+  });
+  return counts;
+}
+
+// 當莊次數轉換為圈數（當幾次莊=幾圈）
+function dealerCountToCircles(count){
+  return count||0;
+}
+
+// ── 莊家計算（含換人）────────────────────────────────────────
+// seats = 座位陣列（隨換人 log 更新），dealerIdx 指向 seats
+function calcDealer(members, logs){
+  if(!members.length) return {dealer:'', streak:0, seats:[...members]};
+  let seats=[...members]; // 座位順序
+  let dealerIdx=0, streak=0, totalRotations=0;
+
+  logs.forEach(log=>{
+    if(log.type==='sub'){
+      // 換人：找到 outPlayer 的座位，換成 inPlayer
+      const seatIdx=seats.indexOf(log.outPlayer);
+      if(seatIdx>=0) seats[seatIdx]=log.inPlayer;
+      // 莊家位換人：莊家順序不變，連莊不中斷
+      return;
+    }
+    const dealer=seats[dealerIdx];
+    if(log.type==='zimo'){
+      if(log.player===dealer){ streak++; }
+      else { dealerIdx=(dealerIdx+1)%seats.length; streak=0; totalRotations++; }
+    } else if(log.type==='hu'){
+      if(log.player===dealer){ streak++; }
+      else { dealerIdx=(dealerIdx+1)%seats.length; streak=0; totalRotations++; }
+    } else if(log.type==='fang'){
+      if(log.winner && log.winner===dealer){
+        // 莊家被放槍胡牌 → 連莊
+        streak++;
+      } else {
+        // 非莊家胡（放槍）→ 輪轉
+        dealerIdx=(dealerIdx+1)%seats.length;
+        streak=0; totalRotations++;
+      }
+    } else if(log.type==='draw'){
+      // 流局：莊家不變，連莊數不變
+    }
+  });
+
+  // 計算風圈：總共完整輪過幾圈（每 seats.length 次輪轉 = 1圈）
+  // 風圈順序：東南西北
+  const WINDS = ['東','南','西','北'];
+  // 每 seats.length 次輪轉 = 1圈，到北風圈後不再循環
+  const windIdx = Math.min(Math.floor(totalRotations / seats.length), 3);
+  return {dealer: seats[dealerIdx], streak, seats, wind: WINDS[windIdx], windRound: windIdx + 1};
+}
+
+// ── 積分計算（台灣麻將：莊家雙倍）──────────────────────────────
+// di=底, tai=每台金額, startChips=起始籌碼
+// 規則：贏家得 底+台數×台；若贏家是莊家，付款方全部雙倍；
+//       若贏家不是莊家，付款的莊家雙倍、其餘一般家一倍。
+// 'hu'（無指定放槍者，如自行胡/漏胡）比照自摸，由在場其他人均攤付款。
+function calcScores(members, logs, di, tai, startChips){
+  const scores={};
+  members.forEach(m=>scores[m]=startChips);
+  let seats=[...members], dealerIdx=0;
+
+  logs.forEach(log=>{
+    if(log.type==='sub'){
+      const idx=seats.indexOf(log.outPlayer);
+      if(idx>=0) seats[idx]=log.inPlayer;
+      if(!(log.inPlayer in scores)) scores[log.inPlayer]=startChips;
+      return;
+    }
+    if(log.type==='draw') return; // 流局不計分
+
+    const dealer=seats[dealerIdx];
+    const taiCount=Number(log.taiCount)||0;
+    const unit=di + taiCount*tai;
+
+    if(log.type==='zimo' || log.type==='hu'){
+      const winner=log.player;
+      if(!(winner in scores)) scores[winner]=startChips;
+      const isDealerWin = winner===dealer;
+      seats.filter(n=>n && n!==winner).forEach(payer=>{
+        if(!(payer in scores)) scores[payer]=startChips;
+        const amt = (isDealerWin || payer===dealer) ? unit*2 : unit;
+        scores[payer]-=amt;
+        scores[winner]+=amt;
+      });
+    } else if(log.type==='fang'){
+      const winner=log.winner, payer=log.player;
+      if(winner){
+        if(!(winner in scores)) scores[winner]=startChips;
+        if(!(payer in scores)) scores[payer]=startChips;
+        const isDealerWin = winner===dealer;
+        const amt = isDealerWin ? unit*2 : unit;
+        scores[payer]-=amt;
+        scores[winner]+=amt;
+      }
+    }
+
+    if(log.type==='zimo'||log.type==='hu'){
+      if(log.player!==dealer) dealerIdx=(dealerIdx+1)%seats.length;
+    } else if(log.type==='fang'){
+      if(!log.winner||log.winner!==dealer) dealerIdx=(dealerIdx+1)%seats.length;
+    }
+  });
+  return scores;
+}
+
+// ── 積分看板 render ──────────────────────────────────────────
+function renderBoard(){
+  const emptyEl=document.getElementById('board-empty');
+  const contentEl=document.getElementById('board-content');
+  if(!state.activeSession){
+    emptyEl.style.display='';
+    contentEl.style.display='none';
+    return;
+  }
+  emptyEl.style.display='none';
+  contentEl.style.display='';
+
+  const s=state.activeSession;
+  const logs=s.logs?Object.entries(s.logs).map(([id,v])=>({id,...v})).sort((a,b)=>a.ts-b.ts):[];
+  const members=s.members||[];
+  const di=Number(s.di)||0, tai=Number(s.tai)||0, startChips=Number(s.startChips)||0;
+
+  const {dealer, wind, windRound, streak} = calcDealer(members, logs);
+  const scores = calcScores(members, logs, di, tai, startChips);
+
+  const windEl=document.getElementById('board-wind');
+  windEl.textContent=wind;
+  windEl.title=wind+'風圈';
+  document.getElementById('board-round-info').textContent=
+    `${sessionName(s)} · ${wind}${windRound}局 · 莊家 ${dealer}${streak>=2?` 🔥連${streak}`:''}`;
+
+  const sorted=Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('board-list').innerHTML=sorted.map(([name,score])=>{
+    const isDealer=name===dealer;
+    const cls = score>0?'pos':score<0?'neg':'';
+    return `<div class="board-row ${isDealer?'dealer':''}">
+      <div class="b-avatar ${av(name)}">${name.charAt(0)}</div>
+      <div class="b-name">${name}${isDealer?' 🀄':''}</div>
+      <div class="b-score ${cls}">${score>0?'+':''}${score}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── 場次名稱 ─────────────────────────────────────────────────
+function sessionName(s){
+  const d = new Date(s.startedAt);
+  const month = d.getMonth()+1;
+  const day = d.getDate();
+  const round = s.roundNo || 1;
+  return `${month}月${day}日 第${round}將`;
+}
+
+// ── Start ─────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
