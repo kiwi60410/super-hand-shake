@@ -7,24 +7,24 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --green:#2ecc71;--green-dark:#27ae60;--red:#e74c3c;--red-dark:#c0392b;
-  --blue:#3498db;--blue-dark:#2980b9;--orange:#f39c12;--purple:#9b59b6;
-  --teal:#1abc9c;--bg:#fef9f0;--card:#fff;--text:#2c2c2c;--muted:#888;
-  --border:#ede8de;--radius:16px;--rsm:10px;
-  --shadow:0 4px 16px rgba(0,0,0,.08);
+  --green:#6fcf97;--green-dark:#4caf7d;--red:#ff8fab;--red-dark:#e8628c;
+  --blue:#b39ddb;--blue-dark:#9575cd;--orange:#ffb37a;--purple:#d7a8e0;
+  --teal:#8fd9c4;--bg:#fff5f8;--card:#fff;--text:#3a2c35;--muted:#a68a99;
+  --border:#f6e0ea;--radius:16px;--rsm:10px;
+  --shadow:0 4px 16px rgba(179,80,140,.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 .num{font-family:'Nunito',sans-serif}
 
 /* ── Header ── */
-.header{background:linear-gradient(135deg,#2c3e50,#3d5166);
+.header{background:linear-gradient(135deg,#b39ddb,#f7b8d0);
   padding:1rem 1.25rem;padding-top:calc(1rem + env(safe-area-inset-top));
   position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2);
   display:flex;align-items:center;justify-content:space-between}
 .header-title{color:#fff;font-size:19px;font-weight:900;font-family:'Nunito',sans-serif;display:flex;align-items:center;gap:8px}
 .header-sub{color:rgba(255,255,255,.6);font-size:12px;margin-top:2px}
-.sync-dot{width:8px;height:8px;border-radius:50%;background:#2ecc71;box-shadow:0 0 6px #2ecc71;animation:pulse 2s infinite;opacity:0}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#6fcf97;box-shadow:0 0 6px #6fcf97;animation:pulse 2s infinite;opacity:0}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* ── Nav ── */
@@ -91,7 +91,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 /* ── 積分看板 ── */
 .board-content{display:flex;flex-direction:column;height:100%}
 .board-top{text-align:center;margin-bottom:1.25rem;flex-shrink:0}
-.board-wind-circle{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#e67e22,#f39c12);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif;box-shadow:0 4px 14px rgba(243,156,18,.4);margin:0 auto 8px}
+.board-wind-circle{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#d7a8e0,#ffb6c1);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif;box-shadow:0 4px 14px rgba(215,168,224,.4);margin:0 auto 8px}
 .board-round-info{font-size:13px;color:var(--muted)}
 .board-list{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0}
 .board-row{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)}
@@ -165,7 +165,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .undo-btn:active{color:var(--red)}
 
 /* ── 場次卡 ── */
-.session-head{background:linear-gradient(135deg,#2c3e50,#3d5166);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-radius:var(--rsm) var(--rsm) 0 0;cursor:pointer;user-select:none}
+.session-head{background:linear-gradient(135deg,#b39ddb,#f7b8d0);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-radius:var(--rsm) var(--rsm) 0 0;cursor:pointer;user-select:none}
 .session-logs{display:none;background:#fafaf8;border:1.5px solid var(--border);border-top:none;padding:8px 16px}
 .session-logs.open{display:block}
 .history-log-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--border);font-size:13px}
@@ -196,16 +196,16 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .loading{text-align:center;padding:2rem 0;color:var(--muted)}
 .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
 @keyframes spin{to{transform:rotate(360deg)}}
-#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:#2c3e50;color:#fff;padding:10px 22px;border-radius:30px;font-size:14px;font-weight:600;opacity:0;transition:all .3s;z-index:9999;pointer-events:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:#6b4e71;color:#fff;padding:10px 22px;border-radius:30px;font-size:14px;font-weight:600;opacity:0;transition:all .3s;z-index:9999;pointer-events:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.2)}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
 .badge{background:var(--orange);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;font-family:'Nunito',sans-serif}
 
 /* Avatar colors */
-.av0{background:#fde8e8;color:#c0392b}.av1{background:#e8f4fd;color:#2980b9}
-.av2{background:#eafaf1;color:#27ae60}.av3{background:#fefcec;color:#b7770d}
-.av4{background:#f5eef8;color:#8e44ad}.av5{background:#fef5e7;color:#d35400}
-.av6{background:#e8f8f5;color:#1abc9c}.av7{background:#fdedec;color:#e74c3c}
+.av0{background:#ffe3ec;color:#d6567c}.av1{background:#efe3fb;color:#8e5cd9}
+.av2{background:#e3f7ef;color:#3fae83}.av3{background:#fff3d9;color:#d99a2b}
+.av4{background:#f3e3fb;color:#9b59b6}.av5{background:#ffe9d9;color:#d9722b}
+.av6{background:#e3f7f5;color:#34a596}.av7{background:#ffe3e3;color:#d9534f}
 </style>
 </head>
 <body>
@@ -265,13 +265,13 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         <div style="font-size:12px;color:var(--muted);margin-top:2px" id="session-count"></div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
-        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#e67e22,#f39c12);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif;box-shadow:0 2px 8px rgba(243,156,18,.4)" id="wind-display">東</div>
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#d7a8e0,#ffb6c1);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif;box-shadow:0 2px 8px rgba(215,168,224,.4)" id="wind-display">東</div>
         <button class="btn btn-sm btn-red" onclick="endSession()">結束場次</button>
       </div>
     </div>
 
     <!-- 連莊提示 -->
-    <div id="streak-banner" style="display:none;background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;border-radius:var(--rsm);padding:10px 14px;margin-bottom:10px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px"></div>
+    <div id="streak-banner" style="display:none;background:linear-gradient(135deg,#ffb6c1,#d7a8e0);color:#fff;border-radius:var(--rsm);padding:10px 14px;margin-bottom:10px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px"></div>
 
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <div class="sec" style="margin:0">⚡ 即時登記</div>
@@ -412,7 +412,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       </select>
     </div>
     <button class="btn btn-full" onclick="mergeMembers()"
-      style="background:#f39c12;color:#fff;border-color:#f39c12">
+      style="background:var(--orange);color:#fff;border-color:var(--orange)">
       🔀 執行合併
     </button>
   </div>
