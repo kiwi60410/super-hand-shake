@@ -1525,12 +1525,15 @@ function calcDealer(members, logs){
 
 // ── 積分計算（台灣麻將）──────────────────────────────────────
 // di=底, tai=每台金額, startChips=起始籌碼
-// 規則：贏家得 底+台數×台；莊家胡牌/自摸不加倍；
-//       但莊家身為付款方時（別人胡/自摸），莊家要付雙倍，一般家付一倍。
+// 規則：贏家得 底+台數×台
+// 莊家台（僅在「莊家自己是贏家」時套用，自摸、放槍皆適用）：
+//   未連莊=1台、連莊一次=3台、連莊二次=5台……（每多連一次+2台）
+//   此莊家台會加進本手牌的總台數，全部付款人依此加成後的台數計算
+// 莊家身為單純付款方（別人自摸/胡牌）時，不再有雙倍規則，付款方式跟一般玩家相同
 function calcScores(members, logs, di, tai, startChips){
   const scores={};
   members.forEach(m=>scores[m]=startChips);
-  let seats=[...members], dealerIdx=0;
+  let seats=[...members], dealerIdx=0, streak=0;
 
   logs.forEach(log=>{
     if(log.type==='sub'){
@@ -1542,33 +1545,37 @@ function calcScores(members, logs, di, tai, startChips){
     if(log.type==='draw') return; // 流局不計分
 
     const dealer=seats[dealerIdx];
-    const taiCount=Number(log.taiCount)||0;
-    const unit=di + taiCount*tai;
+    const enteredTai=Number(log.taiCount)||0;
+    const isDealerWin = (log.type==='zimo'||log.type==='hu')
+      ? log.player===dealer
+      : (log.type==='fang' && log.winner===dealer);
+    const dealerBonusTai = isDealerWin ? (1 + 2*streak) : 0;
+    const unit = di + (enteredTai + dealerBonusTai)*tai;
 
     if(log.type==='zimo' || log.type==='hu'){
       const winner=log.player;
       if(!(winner in scores)) scores[winner]=startChips;
       seats.filter(n=>n && n!==winner).forEach(payer=>{
         if(!(payer in scores)) scores[payer]=startChips;
-        const amt = (payer===dealer) ? unit*2 : unit;
-        scores[payer]-=amt;
-        scores[winner]+=amt;
+        scores[payer]-=unit;
+        scores[winner]+=unit;
       });
     } else if(log.type==='fang'){
       const winner=log.winner, payer=log.player;
       if(winner){
         if(!(winner in scores)) scores[winner]=startChips;
         if(!(payer in scores)) scores[payer]=startChips;
-        const amt = unit;
-        scores[payer]-=amt;
-        scores[winner]+=amt;
+        scores[payer]-=unit;
+        scores[winner]+=unit;
       }
     }
 
     if(log.type==='zimo'||log.type==='hu'){
-      if(log.player!==dealer) dealerIdx=(dealerIdx+1)%seats.length;
+      if(log.player===dealer){ streak++; }
+      else { dealerIdx=(dealerIdx+1)%seats.length; streak=0; }
     } else if(log.type==='fang'){
-      if(!log.winner||log.winner!==dealer) dealerIdx=(dealerIdx+1)%seats.length;
+      if(log.winner && log.winner===dealer){ streak++; }
+      else { dealerIdx=(dealerIdx+1)%seats.length; streak=0; }
     }
   });
   return scores;
