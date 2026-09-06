@@ -294,7 +294,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         <div style="font-size:13px;font-weight:700;color:var(--muted);text-align:center;margin-bottom:8px">台數</div>
         <div class="tai-stepper">
           <button type="button" onclick="changeTai(-1,'hu')">－</button>
-          <input type="number" id="hu-tai-input" value="1" min="0">
+          <input type="number" id="hu-tai-input" value="0" min="0">
           <button type="button" onclick="changeTai(1,'hu')">＋</button>
         </div>
         <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:16px">誰放槍了？</div>
@@ -928,7 +928,7 @@ window.showHuModal = function(winner){
 
   huWinner=winner;
   document.getElementById('hu-winner-name').textContent=winner;
-  document.getElementById('hu-tai-input').value=1;
+  document.getElementById('hu-tai-input').value=0;
 
   // 其他座位上的人（可能放槍）
   const others=seats.filter(n=>n!==winner);
