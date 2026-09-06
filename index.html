@@ -89,13 +89,51 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .btn-fang:active,.btn-fang.flash{background:var(--red);color:#fff}
 
 /* ── 積分看板 ── */
-.board-row{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:10px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)}
+.board-content{display:flex;flex-direction:column;height:100%}
+.board-top{text-align:center;margin-bottom:1.25rem;flex-shrink:0}
+.board-wind-circle{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#e67e22,#f39c12);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif;box-shadow:0 4px 14px rgba(243,156,18,.4);margin:0 auto 8px}
+.board-round-info{font-size:13px;color:var(--muted)}
+.board-list{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0}
+.board-row{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)}
 .board-row.dealer{border-color:var(--orange);background:#fefcec}
 .b-avatar{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;font-family:'Nunito',sans-serif;flex-shrink:0}
 .b-name{font-weight:700;font-size:16px}
 .b-score{font-family:'Nunito',sans-serif;font-weight:900;font-size:26px;margin-left:auto}
 .b-score.pos{color:var(--green-dark)}
 .b-score.neg{color:var(--red-dark)}
+
+/* ── 橫向螢幕：積分看板全畫面顯示，不需捲動 ── */
+@media (orientation:landscape){
+  .header{padding:.5rem 1rem}
+  .header-sub{display:none}
+  .nav-btn{padding:6px 4px 5px;font-size:9px}
+  .nav-btn .icon{font-size:15px;margin-bottom:0}
+
+  #page-board.active{
+    height:calc(100vh - 92px);
+    height:calc(100dvh - 92px);
+    padding:1rem 1.5rem;
+    overflow:hidden;
+    display:flex;
+    max-width:none;
+    width:100%;
+  }
+  #page-board .board-content{width:100%}
+  .board-top{margin-bottom:.6rem}
+  .board-wind-circle{width:9vh;height:9vh;font-size:4vh;margin-bottom:4px}
+  .board-round-info{font-size:1.8vh}
+  .board-list{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    grid-auto-rows:1fr;
+    gap:1.2vh 1.5vw;
+    overflow:hidden;
+  }
+  .board-row{padding:0 1.4vw;gap:1.2vw}
+  .b-avatar{width:6.5vh;height:6.5vh;font-size:2.4vh}
+  .b-name{font-size:2.4vh}
+  .b-score{font-size:4.2vh}
+}
 
 /* ── 台數 stepper ── */
 .tai-stepper{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px}
@@ -312,12 +350,12 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <span class="ei">🏆</span>
     <div>尚未開始場次</div>
   </div>
-  <div id="board-content" style="display:none">
-    <div style="text-align:center;margin-bottom:1.25rem">
-      <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#e67e22,#f39c12);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif;box-shadow:0 4px 14px rgba(243,156,18,.4);margin:0 auto 8px" id="board-wind"></div>
-      <div style="font-size:13px;color:var(--muted)" id="board-round-info"></div>
+  <div id="board-content" class="board-content" style="display:none">
+    <div class="board-top">
+      <div class="board-wind-circle" id="board-wind"></div>
+      <div class="board-round-info" id="board-round-info"></div>
     </div>
-    <div id="board-list"></div>
+    <div id="board-list" class="board-list"></div>
   </div>
 </div>
 
@@ -1480,11 +1518,10 @@ function calcDealer(members, logs){
   return {dealer: seats[dealerIdx], streak, seats, wind: WINDS[windIdx], windRound: windIdx + 1};
 }
 
-// ── 積分計算（台灣麻將：莊家雙倍）──────────────────────────────
+// ── 積分計算（台灣麻將）──────────────────────────────────────
 // di=底, tai=每台金額, startChips=起始籌碼
-// 規則：贏家得 底+台數×台；若贏家是莊家，付款方全部雙倍；
-//       若贏家不是莊家，付款的莊家雙倍、其餘一般家一倍。
-// 'hu'（無指定放槍者，如自行胡/漏胡）比照自摸，由在場其他人均攤付款。
+// 規則：贏家得 底+台數×台；莊家胡牌/自摸不加倍；
+//       但莊家身為付款方時（別人胡/自摸），莊家要付雙倍，一般家付一倍。
 function calcScores(members, logs, di, tai, startChips){
   const scores={};
   members.forEach(m=>scores[m]=startChips);
@@ -1506,10 +1543,9 @@ function calcScores(members, logs, di, tai, startChips){
     if(log.type==='zimo' || log.type==='hu'){
       const winner=log.player;
       if(!(winner in scores)) scores[winner]=startChips;
-      const isDealerWin = winner===dealer;
       seats.filter(n=>n && n!==winner).forEach(payer=>{
         if(!(payer in scores)) scores[payer]=startChips;
-        const amt = (isDealerWin || payer===dealer) ? unit*2 : unit;
+        const amt = (payer===dealer) ? unit*2 : unit;
         scores[payer]-=amt;
         scores[winner]+=amt;
       });
@@ -1518,8 +1554,7 @@ function calcScores(members, logs, di, tai, startChips){
       if(winner){
         if(!(winner in scores)) scores[winner]=startChips;
         if(!(payer in scores)) scores[payer]=startChips;
-        const isDealerWin = winner===dealer;
-        const amt = isDealerWin ? unit*2 : unit;
+        const amt = unit;
         scores[payer]-=amt;
         scores[winner]+=amt;
       }
