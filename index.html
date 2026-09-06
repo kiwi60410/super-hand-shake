@@ -752,6 +752,7 @@ function renderLive(){
   const s=state.activeSession;
   const logs=s.logs ? Object.entries(s.logs).map(([id,v])=>({id,...v})).sort((a,b)=>a.ts-b.ts) : [];
   const members=s.members||[];
+  const annotatedLogs=annotateLogsForDisplay(members, logs);
 
   const {wind, windRound} = calcDealer(members, logs);
   document.getElementById('session-info').textContent=`🀄 ${sessionName(s)}`;
@@ -819,11 +820,11 @@ function renderLive(){
     logEl.innerHTML='<div style="padding:1.5rem 0;text-align:center;color:var(--muted);font-size:13px">尚無記錄</div>';
     return;
   }
-  const reversed=[...logs].reverse();
+  const reversed=[...annotatedLogs].reverse();
   logEl.innerHTML=reversed.map(log=>{
     const time=new Date(log.ts).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
     let tag='',desc='';
-    const taiTxt = (log.taiCount!==undefined && log.taiCount!==null) ? ` · ${log.taiCount}台` : '';
+    const taiTxt = taiDisplayText(log);
     if(log.type==='zimo'){ tag='<span class="log-tag tag-zimo">自摸</span>'; desc=`${log.player} 自摸${taiTxt}`; }
     else if(log.type==='hu'){ tag='<span class="log-tag tag-hu">胡牌</span>'; desc=`${log.player} 胡${taiTxt}`; }
     else if(log.type==='fang'){ tag='<span class="log-tag tag-hu">胡牌</span>'; desc=`${log.winner||'?'} 胡${log.player?` （${log.player} 放槍）`:''}${taiTxt}`; }
@@ -1356,9 +1357,10 @@ function historyLogTag(log){
 }
 
 function historyLogDesc(log){
-  if(log.type==='zimo') return `${log.player} 自摸`;
-  if(log.type==='hu')   return `${log.player} 胡`;
-  if(log.type==='fang') return `${log.winner||'?'} 胡（${log.player} 放槍）`;
+  const taiTxt = taiDisplayText(log);
+  if(log.type==='zimo') return `${log.player} 自摸${taiTxt}`;
+  if(log.type==='hu')   return `${log.player} 胡${taiTxt}`;
+  if(log.type==='fang') return `${log.winner||'?'} 胡（${log.player} 放槍）${taiTxt}`;
   if(log.type==='draw') return `流局，莊家 ${log.dealer||''} 繼續`;
   if(log.type==='sub')  return `${log.outPlayer} ↔ ${log.inPlayer}`;
   return '';
@@ -1369,7 +1371,7 @@ function renderHistory(){
   if(!state.sessions.length){ el.innerHTML='<div class="empty"><span class="ei">🀄</span><p>尚無歷史場次</p></div>'; return; }
   el.innerHTML=state.sessions.map(s=>{
     const sortedLogs=s.logs
-      ? Object.entries(s.logs).map(([id,v])=>({id,...v})).sort((a,b)=>a.ts-b.ts)
+      ? annotateLogsForDisplay(s.members||[], Object.entries(s.logs).map(([id,v])=>({id,...v})).sort((a,b)=>a.ts-b.ts))
       : [];
     const dur=s.endedAt?Math.round((s.endedAt-s.startedAt)/60000)+'分鐘':'進行中';
     const members=(s.members||[]).filter(n=>n&&n!=='undefined')
@@ -1525,11 +1527,11 @@ function calcDealer(members, logs){
 
 // ── 積分計算（台灣麻將）──────────────────────────────────────
 // di=底, tai=每台金額, startChips=起始籌碼
-// 規則：贏家得 底+台數×台
-// 莊家台（僅在「莊家自己是贏家」時套用，自摸、放槍皆適用）：
-//   未連莊=1台、連莊一次=3台、連莊二次=5台……（每多連一次+2台）
-//   此莊家台會加進本手牌的總台數，全部付款人依此加成後的台數計算
-// 莊家身為單純付款方（別人自摸/胡牌）時，不再有雙倍規則，付款方式跟一般玩家相同
+// 莊家台：未連莊=1台、連莊一次=3台、連莊二次=5台……（每多連一次+2台）
+// 只要莊家是這筆交易的其中一方（不論輸贏），莊家台就要加進「莊家那一份」的台數：
+//   ・胡牌／放槍（莊家胡 或 莊家放槍）：單一筆金額 = (輸入台數+莊家台)×台+底
+//   ・自摸：若贏家是莊家 → 全部付款人都用 (輸入台數+莊家台)×台+底
+//          若贏家不是莊家 → 莊家自己付 (輸入台數+莊家台)×台+底，其他一般玩家付 輸入台數×台+底
 function calcScores(members, logs, di, tai, startChips){
   const scores={};
   members.forEach(m=>scores[m]=startChips);
@@ -1546,27 +1548,30 @@ function calcScores(members, logs, di, tai, startChips){
 
     const dealer=seats[dealerIdx];
     const enteredTai=Number(log.taiCount)||0;
-    const isDealerWin = (log.type==='zimo'||log.type==='hu')
-      ? log.player===dealer
-      : (log.type==='fang' && log.winner===dealer);
-    const dealerBonusTai = isDealerWin ? (1 + 2*streak) : 0;
-    const unit = di + (enteredTai + dealerBonusTai)*tai;
+    const dealerBonusTai = 1 + 2*streak;
 
     if(log.type==='zimo' || log.type==='hu'){
       const winner=log.player;
       if(!(winner in scores)) scores[winner]=startChips;
+      const winnerIsDealer = winner===dealer;
       seats.filter(n=>n && n!==winner).forEach(payer=>{
         if(!(payer in scores)) scores[payer]=startChips;
-        scores[payer]-=unit;
-        scores[winner]+=unit;
+        let payTai = enteredTai;
+        if(winnerIsDealer || payer===dealer) payTai += dealerBonusTai;
+        const amt = di + payTai*tai;
+        scores[payer]-=amt;
+        scores[winner]+=amt;
       });
     } else if(log.type==='fang'){
       const winner=log.winner, payer=log.player;
       if(winner){
         if(!(winner in scores)) scores[winner]=startChips;
         if(!(payer in scores)) scores[payer]=startChips;
-        scores[payer]-=unit;
-        scores[winner]+=unit;
+        let payTai = enteredTai;
+        if(winner===dealer || payer===dealer) payTai += dealerBonusTai;
+        const amt = di + payTai*tai;
+        scores[payer]-=amt;
+        scores[winner]+=amt;
       }
     }
 
@@ -1579,6 +1584,54 @@ function calcScores(members, logs, di, tai, startChips){
     }
   });
   return scores;
+}
+
+// ── 依序重播記錄，標註每筆當下的莊家／連莊，供顯示台數使用 ──────
+function annotateLogsForDisplay(members, logs){
+  let seats=[...members], dealerIdx=0, streak=0;
+  return logs.map(log=>{
+    if(log.type==='sub'){
+      const idx=seats.indexOf(log.outPlayer);
+      if(idx>=0) seats[idx]=log.inPlayer;
+      return {...log, dealerAtTime:null, dealerBonusTai:0};
+    }
+    const dealerAtTime=seats[dealerIdx];
+    const dealerBonusTai=1+2*streak;
+    const out={...log, dealerAtTime, dealerBonusTai};
+    if(log.type==='zimo'||log.type==='hu'){
+      if(log.player===dealerAtTime){ streak++; }
+      else { dealerIdx=(dealerIdx+1)%seats.length; streak=0; }
+    } else if(log.type==='fang'){
+      if(log.winner && log.winner===dealerAtTime){ streak++; }
+      else { dealerIdx=(dealerIdx+1)%seats.length; streak=0; }
+    }
+    return out;
+  });
+}
+
+// 產生某一筆記錄的「顯示台數」文字
+// combine=true：贏家或放槍者是莊家（單一交易）／莊家自摸（全體同台）→ 合併成一個總台數
+// combine=false：莊家被自摸 → 一般台數與莊家台數分開顯示
+function taiDisplayText(log){
+  if(log.taiCount===undefined || log.taiCount===null) return '';
+  const enteredTai=Number(log.taiCount)||0;
+  const dealer=log.dealerAtTime;
+  const bonus=log.dealerBonusTai||0;
+
+  if(log.type==='fang'){
+    const dealerInvolved = dealer!=null && (log.winner===dealer || log.player===dealer);
+    return dealerInvolved ? ` · ${enteredTai+bonus}台` : ` · ${enteredTai}台`;
+  }
+  if(log.type==='zimo' || log.type==='hu'){
+    if(dealer!=null && log.player===dealer){
+      return ` · ${enteredTai+bonus}台`; // 莊家自摸：合併總台數
+    }
+    if(dealer!=null){
+      return ` · ${enteredTai}台（莊家另付${enteredTai+bonus}台）`; // 莊家被自摸：分開顯示
+    }
+    return ` · ${enteredTai}台`;
+  }
+  return '';
 }
 
 // ── 積分看板 render ──────────────────────────────────────────
